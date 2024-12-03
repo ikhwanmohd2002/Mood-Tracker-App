@@ -2,7 +2,6 @@ package com.taskapp.implementations;
 
 import com.taskapp.models.Task;
 import com.taskapp.services.TaskManagementService;
-import com.taskapp.utils.TaskStorage;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -10,23 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TaskManagementServiceImpl implements TaskManagementService {
-    private final List<Task> tasks;
-    private int nextId;
+    private final List<Task> tasks = new ArrayList<>();
+    private int nextId = 1;
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-
-    public TaskManagementServiceImpl() {
-        this.tasks = TaskStorage.loadTasks(); // Load tasks from local storage
-        this.nextId = tasks.stream()
-                .mapToInt(Task::getId)
-                .max()
-                .orElse(0) + 1; // Determine the next ID
-    }
 
     @Override
     public void addTask(String description) {
         Task newTask = new Task(nextId++, description, "pending", "no deadline");
         tasks.add(newTask);
-        TaskStorage.saveTasks(tasks); // Save to local storage
         System.out.println("Task added successfully!");
     }
 
@@ -43,7 +33,6 @@ public class TaskManagementServiceImpl implements TaskManagementService {
     public void deleteTask(int taskId) {
         boolean removed = tasks.removeIf(task -> task.getId() == taskId);
         if (removed) {
-            TaskStorage.saveTasks(tasks);
             System.out.println("Task deleted successfully!");
         } else {
             System.out.println("Task not found.");
@@ -57,7 +46,6 @@ public class TaskManagementServiceImpl implements TaskManagementService {
                 .findFirst()
                 .ifPresentOrElse(task -> {
                     task.setStatus(status);
-                    TaskStorage.saveTasks(tasks); // Save to local storage
                     System.out.println("Task status updated to: " + status);
                 }, () -> System.out.println("Task not found."));
     }
@@ -69,7 +57,6 @@ public class TaskManagementServiceImpl implements TaskManagementService {
                 .findFirst()
                 .ifPresentOrElse(task -> {
                     task.setDeadline(deadline);
-                    TaskStorage.saveTasks(tasks); // Save to local storage
                     System.out.println("Deadline set to: " + deadline);
                 }, () -> System.out.println("Task not found."));
     }

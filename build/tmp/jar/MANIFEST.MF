@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
-Bundle-Name: HelloBundle
-Bundle-SymbolicName: com.example.hello
+Bundle-Name: TaskManagementApp
+Bundle-SymbolicName: com.taskapp
 Bundle-Version: 1.0.0
-Bundle-Activator: HelloActivator
+Bundle-Activator: com.taskapp.activator.TaskManagementActivator
 Import-Package: org.osgi.framework
 
