@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.osgi:osgi.core:6.0.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+}
+
+jar {
+    manifest {
+        attributes(
+            'Bundle-Name': 'TaskManagementApp',
+            'Bundle-SymbolicName': 'com.taskapp',
+            'Bundle-Version': '1.0.0',
+            'Bundle-Activator': 'com.taskapp.activator.TaskManagementActivator',
+            'Import-Package': 'org.osgi.framework'
+        )
+    }
+}
