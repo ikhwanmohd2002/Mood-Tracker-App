@@ -3,5 +3,6 @@ Bundle-Name: TaskManagementApp
 Bundle-SymbolicName: com.taskapp
 Bundle-Version: 1.0.0
 Bundle-Activator: com.taskapp.activator.TaskManagementActivator
-Import-Package: org.osgi.framework
+Import-Package: org.osgi.framework, java.sql, org.sqlite
+Main-Class: com.taskapp.Main
 

@@ -5,7 +5,7 @@ import com.taskapp.models.Task;
 import java.util.List;
 
 public interface TaskManagementService {
-    void addTask(String description);
+    void addTask(String description, String deadline);
 
     void viewTasks();
 

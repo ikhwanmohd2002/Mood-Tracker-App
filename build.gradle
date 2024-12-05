@@ -8,6 +8,7 @@ repositories {
 
 dependencies {
     implementation 'org.osgi:osgi.core:6.0.0'
+    implementation 'org.xerial:sqlite-jdbc:3.36.0.3'
 }
 
 jar {
@@ -17,7 +18,8 @@ jar {
             'Bundle-SymbolicName': 'com.taskapp',
             'Bundle-Version': '1.0.0',
             'Bundle-Activator': 'com.taskapp.activator.TaskManagementActivator',
-            'Import-Package': 'org.osgi.framework'
+            'Import-Package': 'org.osgi.framework, java.sql, org.sqlite',
+            'Main-Class': 'com.taskapp.Main' 
         )
     }
 }

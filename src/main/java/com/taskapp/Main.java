@@ -28,7 +28,9 @@ public class Main {
                 case 1 -> {
                     System.out.print("Enter task description: ");
                     String description = scanner.nextLine();
-                    taskService.addTask(description);
+                    System.out.print("Enter task deadline: ");
+                    String deadline = scanner.nextLine();
+                    taskService.addTask(description, deadline);
                 }
                 case 2 -> taskService.viewTasks();
                 case 3 -> {
