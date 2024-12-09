@@ -51,21 +51,27 @@ public class Main {
     }
 
     private static void addMood(Scanner scanner) {
-       
-    
         try {
-            
-    
-            // Display the list of moods
             System.out.println("Choose a mood:");
             System.out.println("1 - Happy");
             System.out.println("2 - Sad");
             System.out.println("3 - Angry");
             System.out.println("4 - Fear");
             System.out.println("5 - Disgust");
-            System.out.print("Enter the number corresponding to your mood: ");
-            int moodChoice = scanner.nextInt();
-            scanner.nextLine(); // Consume the newline
+            System.out.print("Enter the number corresponding to your mood (Type 'Q' to cancel): ");
+            String moodInput = scanner.nextLine().trim();
+            if (moodInput.equalsIgnoreCase("Q")) {
+                System.out.println("Operation cancelled. Returning to main menu.");
+                return;
+            }
+    
+            int moodChoice;
+            try {
+                moodChoice = Integer.parseInt(moodInput);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a valid number.");
+                return;
+            }
     
             // Map the choice to a mood string
             String mood;
@@ -76,27 +82,34 @@ public class Main {
                 case 4 -> mood = "Fear";
                 case 5 -> mood = "Disgust";
                 default -> {
-                    System.out.println("Invalid choice. Please try again.");
-                    return; // Exit the method if the choice is invalid
+                    System.out.println("Invalid choice. Returning to main menu.");
+                    return;
                 }
             }
     
-            System.out.print("Enter notes (optional): ");
-            String notes = scanner.nextLine();
+            String notes = getInputOrCancel(scanner, "Enter notes (optional)");
+            if (notes == null) return;
     
-            System.out.print("Enter date (DD-MM-YYYY): ");
-            String dateInput = scanner.nextLine().trim();
+            String dateInput = getInputOrCancel(scanner, "Enter date (DD-MM-YYYY)");
+            if (dateInput == null) return;
+    
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            LocalDate date = LocalDate.parse(dateInput, formatter); 
+            LocalDate date;
+            try {
+                date = LocalDate.parse(dateInput, formatter);
+            } catch (DateTimeParseException e) {
+                System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+                return;
+            }
+    
             moodService.addMood(new Mood(date, mood, notes));
             System.out.println("Mood added successfully!");
             viewMoods();
-        } catch (DateTimeParseException e) {
-            System.out.println("Invalid date format. Please use DD-MM-YYYY format.");
         } catch (Exception e) {
             System.out.println("An unexpected error occurred: " + e.getMessage());
         }
     }
+    
     
 
     private static void viewMoods() {
@@ -106,28 +119,39 @@ public class Main {
     }
 
     private static void editMood(Scanner scanner) {
-        // Display all moods
         viewMoods();
     
-        System.out.print("Enter Mood ID to edit: ");
-        int id = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
+        String idInput = getInputOrCancel(scanner, "Enter Mood ID to edit");
+        if (idInput == null) return;
     
-        // Retrieve the current mood entry
-        Mood currentMood = moodService.searchMoodById(id);
-        if (currentMood == null) {
-            System.out.println("Mood not found.");
+        int id;
+        try {
+            id = Integer.parseInt(idInput);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid ID. Returning to main menu.");
             return;
         }
     
-        // Display editing options
+        Mood currentMood = moodService.searchMoodById(id);
+        if (currentMood == null) {
+            System.out.println("Mood not found. Returning to main menu.");
+            return;
+        }
+    
         System.out.println("What would you like to edit?");
         System.out.println("1 - Mood");
         System.out.println("2 - Description");
         System.out.println("3 - Date");
-        System.out.print("Enter your choice: ");
-        int choice = scanner.nextInt();
-        scanner.nextLine(); // Consume newline
+        String choiceInput = getInputOrCancel(scanner, "Enter your choice");
+        if (choiceInput == null) return;
+    
+        int choice;
+        try {
+            choice = Integer.parseInt(choiceInput);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid choice. Returning to main menu.");
+            return;
+        }
     
         String updatedMood = currentMood.getMood();
         String updatedNotes = currentMood.getNotes();
@@ -141,9 +165,16 @@ public class Main {
                 System.out.println("3 - Angry");
                 System.out.println("4 - Fear");
                 System.out.println("5 - Disgust");
-                System.out.print("Enter the number corresponding to your mood: ");
-                int moodChoice = scanner.nextInt();
-                scanner.nextLine(); // Consume newline
+                String moodInput = getInputOrCancel(scanner, "Enter the number corresponding to your mood");
+                if (moodInput == null) return;
+    
+                int moodChoice;
+                try {
+                    moodChoice = Integer.parseInt(moodInput);
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input. Returning to main menu.");
+                    return;
+                }
     
                 switch (moodChoice) {
                     case 1 -> updatedMood = "Happy";
@@ -152,28 +183,29 @@ public class Main {
                     case 4 -> updatedMood = "Fear";
                     case 5 -> updatedMood = "Disgust";
                     default -> {
-                        System.out.println("Invalid mood choice. Exiting edit.");
+                        System.out.println("Invalid mood choice. Returning to main menu.");
                         return;
                     }
                 }
             }
             case 2 -> {
-                System.out.print("Enter new description: ");
-                updatedNotes = scanner.nextLine();
+                updatedNotes = getInputOrCancel(scanner, "Enter new description");
+                if (updatedNotes == null) return;
             }
             case 3 -> {
-                System.out.print("Enter new date (DD-MM-YYYY): ");
-                String dateInput = scanner.nextLine().trim();
+                String dateInput = getInputOrCancel(scanner, "Enter new date (DD-MM-YYYY)");
+                if (dateInput == null) return;
+    
                 try {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                     updatedDate = LocalDate.parse(dateInput, formatter);
                 } catch (DateTimeParseException e) {
-                    System.out.println("Invalid date format. Exiting edit.");
+                    System.out.println("Invalid date format. Returning to main menu.");
                     return;
                 }
             }
             default -> {
-                System.out.println("Invalid choice. Exiting edit.");
+                System.out.println("Invalid choice. Returning to main menu.");
                 return;
             }
         }
@@ -187,33 +219,61 @@ public class Main {
     }
     
     
+    
 
     private static void deleteMood(Scanner scanner) {
-        System.out.print("Enter Mood ID to delete: ");
-        int id = scanner.nextInt();
-
+        String idInput = getInputOrCancel(scanner, "Enter Mood ID to delete");
+        if (idInput == null) return;
+    
+        int id;
+        try {
+            id = Integer.parseInt(idInput);
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid ID. Returning to main menu.");
+            return;
+        }
+    
         if (moodService.deleteMoodById(id)) {
             System.out.println("Mood deleted!");
             viewMoods();
         } else {
-            System.out.println("Mood not found.");
+            System.out.println("Mood not found. Returning to main menu.");
         }
     }
+    
 
     private static void searchMood(Scanner scanner) {
-        System.out.print("Enter date (DD-MM-YYYY) to search: ");
-        String dateInput = scanner.nextLine();
+        String dateInput = getInputOrCancel(scanner, "Enter date (DD-MM-YYYY) to search");
+        if (dateInput == null) return;
+    
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             LocalDate date = LocalDate.parse(dateInput, formatter);
             Mood mood = moodService.searchMoodByDate(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); // Pass database-compatible format
-            System.out.println(mood != null ? mood : "No mood found for the specified date.");
+    
+            if (mood != null) {
+                System.out.println(mood);
+            } else {
+                System.out.println("No mood found for the specified date.");
+            }
         } catch (DateTimeParseException e) {
             System.out.println("Invalid date format. Please use DD-MM-YYYY.");
         }
     }
+    
 
     private static void weeklySummary() {
         System.out.println(moodService.weeklySummary());
     }
+
+    private static String getInputOrCancel(Scanner scanner, String prompt) {
+        System.out.print(prompt + " (Type 'Q' to cancel): ");
+        String input = scanner.nextLine().trim();
+        if (input.equalsIgnoreCase("Q")) {
+            System.out.println("Operation cancelled. Returning to main menu.");
+            return null;
+        }
+        return input;
+    }
+    
 }
