@@ -19,6 +19,7 @@ import java.util.Scanner;
 public class TaskManagementServiceImpl implements TaskManagementService {
     private static final String DB_URL = "jdbc:sqlite:task_management.db";
     private final List<Task> tasks = new ArrayList<>();
+    
     // private int nextId = 1;
     // private final DateTimeFormatter formatter =
     // DateTimeFormatter.ofPattern("dd-MM-yyyy");
@@ -35,6 +36,7 @@ public class TaskManagementServiceImpl implements TaskManagementService {
             pstmt.setString(2, deadline);
             pstmt.executeUpdate();
             System.out.println("Task added successfully!");
+            viewTasks();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -95,6 +97,7 @@ public class TaskManagementServiceImpl implements TaskManagementService {
             
             if (rowsAffected > 0) {
                 System.out.println("Task deleted successfully!");
+                viewTasks();
             } else {
                 System.out.println("No task with ID " + taskId + " available.");
             }
@@ -106,18 +109,72 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 
 
     @Override
-public void updateTaskStatus(int taskId, String status) {
+    public void updateTaskStatus(int taskId, String status) {
+        String sqlCheck = "SELECT COUNT(*) AS count FROM tasks WHERE id = ?";
+        String sqlUpdate = "UPDATE tasks SET status = ? WHERE id = ?";
+    
+        try (Connection conn = DriverManager.getConnection(DB_URL);
+             PreparedStatement checkStmt = conn.prepareStatement(sqlCheck);
+             PreparedStatement updateStmt = conn.prepareStatement(sqlUpdate)) {
+    
+            // Validate that the task ID exists
+            boolean isValidTask = false;
+            Scanner scanner = new Scanner(System.in);
+    
+            while (!isValidTask) {
+                checkStmt.setInt(1, taskId);
+                try (ResultSet rs = checkStmt.executeQuery()) {
+                    if (rs.next() && rs.getInt("count") > 0) {
+                        isValidTask = true; // Task ID is valid
+                    } else {
+                        System.out.println("No task with ID " + taskId + " found. Enter another ID or type 'Q' to quit:");
+                        String input = scanner.nextLine();
+                        if (input.equalsIgnoreCase("Q")) {
+                            System.out.println("Cancelled updating task status.");
+                            return; // Exit the method
+                        }
+                        try {
+                            taskId = Integer.parseInt(input); // Validate new input as an integer
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid ID. Please enter a valid number.");
+                        }
+                    }
+                }
+            }
+    
+            // Validate the status input
+            if (!status.equalsIgnoreCase("pending") && !status.equalsIgnoreCase("completed")) {
+                System.out.println("Invalid status. Please enter 'pending' or 'completed'.");
+                return; // Exit the method if the status is invalid
+            }
+    
+            // Update the task status
+            updateStmt.setString(1, status.toLowerCase());
+            updateStmt.setInt(2, taskId);
+            updateStmt.executeUpdate();
+            System.out.println("Task status updated successfully!");
+            viewTasks();
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+
+@Override
+public void setTaskDeadline(int taskId, String deadline) {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     String sqlCheck = "SELECT COUNT(*) AS count FROM tasks WHERE id = ?";
-    String sqlUpdate = "UPDATE tasks SET status = ? WHERE id = ?";
+    String sqlUpdate = "UPDATE tasks SET deadline = ? WHERE id = ?";
 
-    try (Connection conn = DriverManager.getConnection(DB_URL);
+    try (Connection conn = DriverManager.getConnection("jdbc:sqlite:task_management.db");
          PreparedStatement checkStmt = conn.prepareStatement(sqlCheck);
-         PreparedStatement updateStmt = conn.prepareStatement(sqlUpdate)) {
+         PreparedStatement updateStmt = conn.prepareStatement(sqlUpdate);
+         Scanner scanner = new Scanner(System.in)) {
 
-        // Validate that the task ID exists
         boolean isValidTask = false;
-        Scanner scanner = new Scanner(System.in);
 
+        // Validate task ID
         while (!isValidTask) {
             checkStmt.setInt(1, taskId);
             try (ResultSet rs = checkStmt.executeQuery()) {
@@ -127,11 +184,11 @@ public void updateTaskStatus(int taskId, String status) {
                     System.out.println("No task with ID " + taskId + " found. Enter another ID or type 'Q' to quit:");
                     String input = scanner.nextLine();
                     if (input.equalsIgnoreCase("Q")) {
-                        System.out.println("Cancelled updating task status.");
+                        System.out.println("Cancelled setting task deadline.");
                         return; // Exit the method
                     }
                     try {
-                        taskId = Integer.parseInt(input); // Validate new input as an integer
+                        taskId = Integer.parseInt(input); // Parse new ID
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid ID. Please enter a valid number.");
                     }
@@ -139,71 +196,29 @@ public void updateTaskStatus(int taskId, String status) {
             }
         }
 
-        // Validate the status input
-        if (!status.equalsIgnoreCase("pending") && !status.equalsIgnoreCase("completed")) {
-            System.out.println("Invalid status. Please enter 'pending' or 'completed'.");
-            return; // Exit the method if the status is invalid
-        }
-
-        // Update the task status
-        updateStmt.setString(1, status.toLowerCase());
-        updateStmt.setInt(2, taskId);
-        updateStmt.executeUpdate();
-        System.out.println("Task status updated successfully!");
-    } catch (Exception e) {
-        System.out.println("Error: " + e.getMessage());
-    }
-}
-
-
-    @Override
-    public void setTaskDeadline(int taskId, String deadline) {
-        // // Define the date format
-        // DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-
-        // // Validate the deadline input
-        // try {
-        // LocalDate parsedDate = LocalDate.parse(deadline, formatter);
-
-        // // Proceed to find and update the task if the date is valid
-        // tasks.stream()
-        // .filter(task -> task.getId() == taskId)
-        // .findFirst()
-        // .ifPresentOrElse(task -> {
-        // task.setDeadline(parsedDate.toString());
-        // System.out.println("Deadline set to: " + parsedDate.format(formatter));
-        // }, () -> System.out.println("Task not found."));
-        // } catch (DateTimeParseException e) {
-        // System.out.println("Invalid date format. Please use dd-MM-yyyy.");
-        // } // Define the date format
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-
         // Validate the deadline input
         try {
             LocalDate parsedDate = LocalDate.parse(deadline, formatter);
 
-            // Proceed to update the deadline in the database
-            try (Connection conn = DriverManager.getConnection("jdbc:sqlite:task_management.db")) {
-                String sql = "UPDATE tasks SET deadline = ? WHERE id = ?";
-                try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                    pstmt.setString(1, parsedDate.toString()); // Set the formatted date
-                    pstmt.setInt(2, taskId); // Set the task ID
+            // Update the task deadline
+            updateStmt.setString(1, parsedDate.toString());
+            updateStmt.setInt(2, taskId);
 
-                    int rowsUpdated = pstmt.executeUpdate(); // Execute the update query
-
-                    if (rowsUpdated > 0) {
-                        System.out.println("Deadline set to: " + parsedDate.format(formatter));
-                    } else {
-                        System.out.println("Task not found.");
-                    }
-                }
-            } catch (SQLException e) {
-                System.out.println("Database error: " + e.getMessage());
+            int rowsUpdated = updateStmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("Deadline set to: " + parsedDate.format(formatter));
+                viewTasks();
+            } else {
+                System.out.println("Failed to set the deadline. Please try again.");
             }
         } catch (DateTimeParseException e) {
             System.out.println("Invalid date format. Please use dd-MM-yyyy.");
         }
+    } catch (SQLException e) {
+        System.out.println("Database error: " + e.getMessage());
     }
+}
+
 
     @Override
     public void viewTasksByDeadline(String deadline) {

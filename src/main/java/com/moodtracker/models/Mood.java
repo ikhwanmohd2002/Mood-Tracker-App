@@ -1,23 +1,24 @@
 package com.moodtracker.models;
-
+import java.text.SimpleDateFormat;
+import java.util.Date;
 public class Mood {
-    private String date;
+    private Date date;
     private String mood;
     private String notes;
 
     // Constructor
-    public Mood(String date, String mood, String notes) {
+    public Mood(Date date, String mood, String notes) {
         this.date = date;
         this.mood = mood;
         this.notes = notes;
     }
 
     // Getters and Setters
-    public String getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public void setDate(String date) {
+    public void setDate(Date date) {
         this.date = date;
     }
 
@@ -37,8 +38,14 @@ public class Mood {
         this.notes = notes;
     }
 
+    public String getFormattedDate() {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        return formatter.format(date);
+    }
+
     @Override
     public String toString() {
-        return "Date: " + date + ", Mood: " + mood + ", Notes: " + (notes.isEmpty() ? "None" : notes);
+        return "Date: " + getFormattedDate() + ", Mood: " + mood + ", Notes: " + (notes.isEmpty() ? "None" : notes);
     }
+
 }

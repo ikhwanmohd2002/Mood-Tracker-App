@@ -1,6 +1,8 @@
 package com.moodtracker;
 
+import java.text.SimpleDateFormat;
 import java.util.Scanner;
+import java.util.Date;
 
 import com.moodtracker.implementations.MoodTrackerServiceImpl;
 import com.moodtracker.models.Mood;
@@ -44,13 +46,24 @@ public class Main {
     }
 
     private static void addMood(Scanner scanner) {
-        System.out.print("Enter date (YYYY-MM-DD): ");
-        String date = scanner.nextLine();
+            System.out.print("Enter date (YYYY-MM-DD): ");
+    String dateInput = scanner.nextLine();
+
+    try {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = formatter.parse(dateInput);
+
         System.out.print("Enter mood: ");
         String mood = scanner.nextLine();
         System.out.print("Enter notes (optional): ");
         String notes = scanner.nextLine();
+
         moodService.addMood(new Mood(date, mood, notes));
+        System.out.println("Mood added successfully!");
+    } catch (Exception e) {
+        System.out.println("Invalid date format. Please use YYYY-MM-DD.");
+    }
+
     }
 
     private static void viewMoods() {
