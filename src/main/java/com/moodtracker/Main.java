@@ -1,6 +1,9 @@
 package com.moodtracker;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Scanner;
 import java.util.Date;
 
@@ -46,24 +49,27 @@ public class Main {
     }
 
     private static void addMood(Scanner scanner) {
-            System.out.print("Enter date (YYYY-MM-DD): ");
-    String dateInput = scanner.nextLine();
+        System.out.print("Enter date (YYYY-MM-DD): ");
+        String dateInput = scanner.nextLine().trim(); // Trim any extra whitespace
 
-    try {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        Date date = formatter.parse(dateInput);
+        try {
 
-        System.out.print("Enter mood: ");
-        String mood = scanner.nextLine();
-        System.out.print("Enter notes (optional): ");
-        String notes = scanner.nextLine();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            LocalDate date = LocalDate.parse(dateInput, formatter); // Parse the date
 
-        moodService.addMood(new Mood(date, mood, notes));
-        System.out.println("Mood added successfully!");
-    } catch (Exception e) {
-        System.out.println("Invalid date format. Please use YYYY-MM-DD.");
-    }
+            System.out.print("Enter mood: ");
+            String mood = scanner.nextLine();
+            System.out.print("Enter notes (optional): ");
+            String notes = scanner.nextLine();
 
+
+            moodService.addMood(new Mood(date, mood, notes));
+            System.out.println("Mood added successfully!");
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date format. Please use YYYY-MM-DD.");
+        } catch (Exception e) {
+            System.out.println("An unexpected error occurred: " + e.getMessage());
+        }
     }
 
     private static void viewMoods() {
@@ -73,13 +79,15 @@ public class Main {
     }
 
     private static void editMood(Scanner scanner) {
-        System.out.print("Enter date (YYYY-MM-DD) to edit: ");
-        String date = scanner.nextLine();
+        System.out.print("Enter Mood ID to edit: ");
+        int id = scanner.nextInt();
+        scanner.nextLine(); // Consume newline
         System.out.print("Enter new mood: ");
         String newMood = scanner.nextLine();
         System.out.print("Enter new notes: ");
         String newNotes = scanner.nextLine();
-        if (moodService.editMood(date, newMood, newNotes)) {
+
+        if (moodService.editMoodById(id, newMood, newNotes)) {
             System.out.println("Mood updated!");
         } else {
             System.out.println("Mood not found.");
@@ -87,9 +95,10 @@ public class Main {
     }
 
     private static void deleteMood(Scanner scanner) {
-        System.out.print("Enter date (YYYY-MM-DD) to delete: ");
-        String date = scanner.nextLine();
-        if (moodService.deleteMood(date)) {
+        System.out.print("Enter Mood ID to delete: ");
+        int id = scanner.nextInt();
+
+        if (moodService.deleteMoodById(id)) {
             System.out.println("Mood deleted!");
         } else {
             System.out.println("Mood not found.");
@@ -100,7 +109,7 @@ public class Main {
         System.out.print("Enter date (YYYY-MM-DD) to search: ");
         String date = scanner.nextLine();
         Mood mood = moodService.searchMoodByDate(date);
-        System.out.println(mood != null ? mood : "No mood found.");
+        System.out.println(mood != null ? mood : "No mood found for the specified date.");
     }
 
     private static void weeklySummary() {

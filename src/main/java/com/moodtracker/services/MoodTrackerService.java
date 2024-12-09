@@ -7,13 +7,13 @@ import java.util.List;
 public interface MoodTrackerService {
     void addMood(Mood mood);
 
-    List<Mood> viewMoods();
+    List<Mood> viewMoods(); // View all moods with IDs
 
-    boolean editMood(String date, String newMood, String newNotes);
+    boolean editMoodById(int id, String newMood, String newNotes); // Edit using ID
 
-    boolean deleteMood(String date);
+    boolean deleteMoodById(int id); // Delete using ID
 
-    Mood searchMoodByDate(String date);
+    Mood searchMoodByDate(String date); // Search using Date
 
     String weeklySummary();
 }

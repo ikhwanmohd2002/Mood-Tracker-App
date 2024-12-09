@@ -19,11 +19,11 @@ public class Database {
 
     public static void initialize() {
         try (Connection conn = connect();
-             Statement stmt = conn.createStatement()) {
+                Statement stmt = conn.createStatement()) {
             String sql = """
                     CREATE TABLE IF NOT EXISTS moods (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        date TEXT NOT NULL UNIQUE,
+                        date TEXT NOT NULL,
                         mood TEXT NOT NULL,
                         notes TEXT
                     )
