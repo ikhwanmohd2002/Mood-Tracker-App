@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class TaskManagementServiceImpl implements TaskManagementService {
     private static final String DB_URL = "jdbc:sqlite:task_management.db";
@@ -84,53 +85,76 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 
     @Override
     public void deleteTask(int taskId) {
-        // boolean removed = tasks.removeIf(task -> task.getId() == taskId);
-        // if (removed) {
-        // System.out.println("Task deleted successfully!");
-        // } else {
-        // System.out.println("Task not found.");
-        // }
         String sql = "DELETE FROM tasks WHERE id = ?";
-
+    
         try (Connection conn = DriverManager.getConnection(DB_URL);
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
             pstmt.setInt(1, taskId);
-            pstmt.executeUpdate();
-            System.out.println("Task deleted successfully!");
+            int rowsAffected = pstmt.executeUpdate(); // Execute the update and get the affected row count
+            
+            if (rowsAffected > 0) {
+                System.out.println("Task deleted successfully!");
+            } else {
+                System.out.println("No task with ID " + taskId + " available.");
+            }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
     }
+
+
 
     @Override
-    public void updateTaskStatus(int taskId, String status) {
-        // Validate the status input
-        // if (!status.equalsIgnoreCase("pending") &&
-        // !status.equalsIgnoreCase("completed")) {
-        // System.out.println("Invalid status. Please enter 'pending' or 'completed'.");
-        // return; // Exit the method if the status is invalid
-        // }
+public void updateTaskStatus(int taskId, String status) {
+    String sqlCheck = "SELECT COUNT(*) AS count FROM tasks WHERE id = ?";
+    String sqlUpdate = "UPDATE tasks SET status = ? WHERE id = ?";
 
-        // // Find and update the task if valid
-        // tasks.stream()
-        // .filter(task -> task.getId() == taskId)
-        // .findFirst()
-        // .ifPresentOrElse(task -> {
-        // task.setStatus(status.toLowerCase()); // Normalize to lowercase
-        // System.out.println("Task status updated to: " + status.toLowerCase());
-        // }, () -> System.out.println("Task not found."));
-        String sql = "UPDATE tasks SET status = ? WHERE id = ?";
+    try (Connection conn = DriverManager.getConnection(DB_URL);
+         PreparedStatement checkStmt = conn.prepareStatement(sqlCheck);
+         PreparedStatement updateStmt = conn.prepareStatement(sqlUpdate)) {
 
-        try (Connection conn = DriverManager.getConnection(DB_URL);
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, status);
-            pstmt.setInt(2, taskId);
-            pstmt.executeUpdate();
-            System.out.println("Task status updated successfully!");
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        // Validate that the task ID exists
+        boolean isValidTask = false;
+        Scanner scanner = new Scanner(System.in);
+
+        while (!isValidTask) {
+            checkStmt.setInt(1, taskId);
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next() && rs.getInt("count") > 0) {
+                    isValidTask = true; // Task ID is valid
+                } else {
+                    System.out.println("No task with ID " + taskId + " found. Enter another ID or type 'Q' to quit:");
+                    String input = scanner.nextLine();
+                    if (input.equalsIgnoreCase("Q")) {
+                        System.out.println("Cancelled updating task status.");
+                        return; // Exit the method
+                    }
+                    try {
+                        taskId = Integer.parseInt(input); // Validate new input as an integer
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid ID. Please enter a valid number.");
+                    }
+                }
+            }
         }
+
+        // Validate the status input
+        if (!status.equalsIgnoreCase("pending") && !status.equalsIgnoreCase("completed")) {
+            System.out.println("Invalid status. Please enter 'pending' or 'completed'.");
+            return; // Exit the method if the status is invalid
+        }
+
+        // Update the task status
+        updateStmt.setString(1, status.toLowerCase());
+        updateStmt.setInt(2, taskId);
+        updateStmt.executeUpdate();
+        System.out.println("Task status updated successfully!");
+    } catch (Exception e) {
+        System.out.println("Error: " + e.getMessage());
     }
+}
+
 
     @Override
     public void setTaskDeadline(int taskId, String deadline) {
