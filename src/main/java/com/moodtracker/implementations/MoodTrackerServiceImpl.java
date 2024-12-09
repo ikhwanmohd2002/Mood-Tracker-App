@@ -19,6 +19,8 @@ import com.moodtracker.services.MoodTrackerService;
 public class MoodTrackerServiceImpl implements MoodTrackerService {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
+    
+
     @Override
     public void addMood(Mood mood) {
     String sql = "INSERT INTO moods (date, mood, notes) VALUES (?, ?, ?)";
@@ -64,20 +66,8 @@ public class MoodTrackerServiceImpl implements MoodTrackerService {
 }
 
 
-    @Override
-    public boolean editMoodById(int id, String newMood, String newNotes) {
-        String sql = "UPDATE moods SET mood = ?, notes = ? WHERE id = ?";
-        try (Connection conn = Database.connect();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, newMood);
-            pstmt.setString(2, newNotes);
-            pstmt.setInt(3, id);
-            return pstmt.executeUpdate() > 0;
-        } catch (SQLException e) {
-            System.out.println("Failed to edit mood: " + e.getMessage());
-            return false;
-        }
-    }
+
+
 
     @Override
     public boolean deleteMoodById(int id) {
@@ -131,4 +121,55 @@ public class MoodTrackerServiceImpl implements MoodTrackerService {
         }
         return summary.toString();
     }
+
+    @Override
+public boolean editMoodById(int id, String newMood, String newNotes, LocalDate newDate) {
+    String sql = "UPDATE moods SET mood = ?, notes = ?, date = ? WHERE id = ?";
+    try (Connection conn = Database.connect();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        // Convert LocalDate to String in database format
+        String formattedDate = newDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        pstmt.setString(1, newMood);
+        pstmt.setString(2, newNotes);
+        pstmt.setString(3, formattedDate);
+        pstmt.setInt(4, id);
+
+        return pstmt.executeUpdate() > 0;
+    } catch (SQLException e) {
+        System.out.println("Failed to edit mood: " + e.getMessage());
+        return false;
+    }
+}
+
+
+
+
+
+@Override
+public Mood searchMoodById(int id) {
+    String sql = "SELECT id, date, mood, notes FROM moods WHERE id = ?";
+    try (Connection conn = Database.connect();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        pstmt.setInt(1, id);
+        ResultSet rs = pstmt.executeQuery();
+
+        if (rs.next()) {
+            int moodId = rs.getInt("id");
+            LocalDate date = LocalDate.parse(rs.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String mood = rs.getString("mood");
+            String notes = rs.getString("notes");
+
+            return new Mood(moodId, date, mood, notes);
+        }
+    } catch (SQLException e) {
+        System.out.println("Failed to search mood by ID: " + e.getMessage());
+    }
+    return null;
+}
+
+
+
 }

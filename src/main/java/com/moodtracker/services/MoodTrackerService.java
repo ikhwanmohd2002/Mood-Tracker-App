@@ -2,18 +2,15 @@ package com.moodtracker.services;
 
 import com.moodtracker.models.Mood;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface MoodTrackerService {
     void addMood(Mood mood);
-
-    List<Mood> viewMoods(); // View all moods with IDs
-
-    boolean editMoodById(int id, String newMood, String newNotes); // Edit using ID
-
-    boolean deleteMoodById(int id); // Delete using ID
-
-    Mood searchMoodByDate(String date); // Search using Date
-
+    List<Mood> viewMoods();
+    boolean editMoodById(int id, String newMood, String newNotes, LocalDate newDate);
+    Mood searchMoodById(int id);
+    boolean deleteMoodById(int id);
+    Mood searchMoodByDate(String date);
     String weeklySummary();
 }
