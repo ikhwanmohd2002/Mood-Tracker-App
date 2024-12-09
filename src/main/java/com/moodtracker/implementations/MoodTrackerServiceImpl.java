@@ -17,48 +17,52 @@ import com.moodtracker.models.Mood;
 import com.moodtracker.services.MoodTrackerService;
 
 public class MoodTrackerServiceImpl implements MoodTrackerService {
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
     @Override
     public void addMood(Mood mood) {
-        String sql = "INSERT INTO moods (date, mood, notes) VALUES (?, ?, ?)";
-        try (Connection conn = Database.connect();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    String sql = "INSERT INTO moods (date, mood, notes) VALUES (?, ?, ?)";
+    try (Connection conn = Database.connect();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            // Use LocalDate's toString() method to get the formatted date in "yyyy-MM-dd"
-            String formattedDate = mood.getDate().toString();
+        // Convert date to `yyyy-MM-dd` for database storage
+        String formattedDate = mood.getDate().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-            pstmt.setString(1, formattedDate); // Set date as a string
-            pstmt.setString(2, mood.getMood()); // Set mood
-            pstmt.setString(3, mood.getNotes()); // Set notes
-            pstmt.executeUpdate();
-            System.out.println("Mood added successfully!");
-        } catch (SQLException e) {
-            System.out.println("Failed to add mood: " + e.getMessage());
-        }
+        pstmt.setString(1, formattedDate);
+        pstmt.setString(2, mood.getMood());
+        pstmt.setString(3, mood.getNotes());
+        pstmt.executeUpdate();
+        System.out.println("Mood added successfully!");
+    } catch (SQLException e) {
+        System.out.println("Failed to add mood: " + e.getMessage());
     }
+    }
+
 
     @Override
     public List<Mood> viewMoods() {
-        List<Mood> moods = new ArrayList<>();
-        String sql = "SELECT id, date, mood, notes FROM moods ORDER BY date DESC";
+    List<Mood> moods = new ArrayList<>();
+    String sql = "SELECT id, date, mood, notes FROM moods ORDER BY date DESC";
 
-        try (Connection conn = Database.connect();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
+    try (Connection conn = Database.connect();
+         Statement stmt = conn.createStatement();
+         ResultSet rs = stmt.executeQuery(sql)) {
 
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                LocalDate date = LocalDate.parse(rs.getString("date"), formatter);
-                String mood = rs.getString("mood");
-                String notes = rs.getString("notes");
-                moods.add(new Mood(id, date, mood, notes));
-            }
-        } catch (SQLException e) {
-            System.out.println("Failed to retrieve moods: " + e.getMessage());
+        while (rs.next()) {
+            int id = rs.getInt("id");
+
+            // Parse `yyyy-MM-dd` from the database and format to `dd-MM-yyyy`
+            LocalDate date = LocalDate.parse(rs.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String mood = rs.getString("mood");
+            String notes = rs.getString("notes");
+            moods.add(new Mood(id, date, mood, notes));
         }
-        return moods;
+    } catch (SQLException e) {
+        System.out.println("Failed to retrieve moods: " + e.getMessage());
     }
+    return moods;
+}
+
 
     @Override
     public boolean editMoodById(int id, String newMood, String newNotes) {
@@ -90,24 +94,25 @@ public class MoodTrackerServiceImpl implements MoodTrackerService {
 
     @Override
     public Mood searchMoodByDate(String date) {
-        String sql = "SELECT id, date, mood, notes FROM moods WHERE date = ?";
-        try (Connection conn = Database.connect();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, date);
-            ResultSet rs = pstmt.executeQuery();
+    String sql = "SELECT id, date, mood, notes FROM moods WHERE date = ?";
+    try (Connection conn = Database.connect();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        pstmt.setString(1, date); // Pass date in `yyyy-MM-dd`
+        ResultSet rs = pstmt.executeQuery();
 
-            if (rs.next()) {
-                int id = rs.getInt("id");
-                LocalDate parsedDate = LocalDate.parse(rs.getString("date"), formatter);
-                String mood = rs.getString("mood");
-                String notes = rs.getString("notes");
-                return new Mood(id, parsedDate, mood, notes);
-            }
-        } catch (SQLException e) {
-            System.out.println("Failed to search mood: " + e.getMessage());
+        if (rs.next()) {
+            int id = rs.getInt("id");
+            LocalDate parsedDate = LocalDate.parse(rs.getString("date"), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            String mood = rs.getString("mood");
+            String notes = rs.getString("notes");
+            return new Mood(id, parsedDate, mood, notes);
         }
-        return null;
+    } catch (SQLException e) {
+        System.out.println("Failed to search mood: " + e.getMessage());
     }
+    return null;
+    }
+
 
     @Override
     public String weeklySummary() {

@@ -49,12 +49,12 @@ public class Main {
     }
 
     private static void addMood(Scanner scanner) {
-        System.out.print("Enter date (YYYY-MM-DD): ");
+        System.out.print("Enter date (DD-MM-YYYY): ");
         String dateInput = scanner.nextLine().trim(); // Trim any extra whitespace
 
         try {
 
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             LocalDate date = LocalDate.parse(dateInput, formatter); // Parse the date
 
             System.out.print("Enter mood: ");
@@ -66,7 +66,7 @@ public class Main {
             moodService.addMood(new Mood(date, mood, notes));
             System.out.println("Mood added successfully!");
         } catch (DateTimeParseException e) {
-            System.out.println("Invalid date format. Please use YYYY-MM-DD.");
+            System.out.println("Invalid date format. Please use DD-MM-YYYY format.");
         } catch (Exception e) {
             System.out.println("An unexpected error occurred: " + e.getMessage());
         }
@@ -106,10 +106,16 @@ public class Main {
     }
 
     private static void searchMood(Scanner scanner) {
-        System.out.print("Enter date (YYYY-MM-DD) to search: ");
-        String date = scanner.nextLine();
-        Mood mood = moodService.searchMoodByDate(date);
-        System.out.println(mood != null ? mood : "No mood found for the specified date.");
+        System.out.print("Enter date (DD-MM-YYYY) to search: ");
+        String dateInput = scanner.nextLine();
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            LocalDate date = LocalDate.parse(dateInput, formatter);
+            Mood mood = moodService.searchMoodByDate(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); // Pass database-compatible format
+            System.out.println(mood != null ? mood : "No mood found for the specified date.");
+        } catch (DateTimeParseException e) {
+            System.out.println("Invalid date format. Please use DD-MM-YYYY.");
+        }
     }
 
     private static void weeklySummary() {
