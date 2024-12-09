@@ -55,17 +55,18 @@ public class TaskManagementServiceImpl implements TaskManagementService {
 
                 // Fetch deadline and reformat it
                 String dbDeadline = rs.getString("deadline");
-                String formattedDeadline = "No deadline"; // Default message if no deadline is available
+                // String formattedDeadline = "No deadline"; // Default message if no deadline
+                // is available
 
-                if (dbDeadline != null && !dbDeadline.isEmpty()) {
-                    LocalDate deadline = LocalDate.parse(dbDeadline, dbFormatter);
-                    formattedDeadline = deadline.format(displayFormatter);
-                }
+                // if (dbDeadline != null && !dbDeadline.isEmpty()) {
+                // LocalDate deadline = LocalDate.parse(dbDeadline, dbFormatter);
+                // formattedDeadline = deadline.format(displayFormatter);
+                // }
 
                 System.out.println("ID: " + rs.getInt("id") +
                         ", Description: " + rs.getString("description") +
                         ", Status: " + rs.getString("status") +
-                        ", Deadline: " + formattedDeadline);
+                        ", Deadline: " + dbDeadline);
             }
 
             if (!hasTasks) {
