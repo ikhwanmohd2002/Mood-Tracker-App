@@ -1,24 +1,49 @@
 package com.moodtracker;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Scanner;
-import java.util.Date;
+
+import org.osgi.framework.BundleActivator;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
 
 import com.moodtracker.implementations.MoodTrackerServiceImpl;
 import com.moodtracker.models.Mood;
 import com.moodtracker.services.MoodTrackerService;
-import com.moodtracker.Database;
 
-public class Main {
+public class Main implements BundleActivator {
     private static final MoodTrackerService moodService = new MoodTrackerServiceImpl();
-    
+
+    @Override
+    public void start(BundleContext context) throws Exception {
+        // Get the MoodTrackerService from the OSGi service registry
+        // ServiceReference<MoodTrackerService> reference =
+        // context.getServiceReference(MoodTrackerService.class);
+        // MoodTrackerService moodService = context.getService(reference);
+
+        if (moodService != null) {
+            System.out.println("MoodTrackerService is available. Testing it...");
+
+            // Example usage of the service
+            Mood newMood = new Mood(LocalDate.now(), "Happy", "Feeling great!");
+            moodService.addMood(newMood);
+
+            System.out.println("All Moods:");
+            moodService.viewMoods().forEach(System.out::println);
+        } else {
+            System.out.println("MoodTrackerService is not available.");
+        }
+    }
+
+    @Override
+    public void stop(BundleContext context) throws Exception {
+        System.out.println("Stopping Main bundle.");
+    }
 
     public static void main(String[] args) {
-        com.moodtracker.Database.initialize();
-        
+        com.moodtracker.database.Database.initialize();
 
         Scanner scanner = new Scanner(System.in);
         boolean running = true;
@@ -64,7 +89,7 @@ public class Main {
                 System.out.println("Operation cancelled. Returning to main menu.");
                 return;
             }
-    
+
             int moodChoice;
             try {
                 moodChoice = Integer.parseInt(moodInput);
@@ -72,7 +97,7 @@ public class Main {
                 System.out.println("Invalid input. Please enter a valid number.");
                 return;
             }
-    
+
             // Map the choice to a mood string
             String mood;
             switch (moodChoice) {
@@ -86,13 +111,15 @@ public class Main {
                     return;
                 }
             }
-    
+
             String notes = getInputOrCancel(scanner, "Enter notes (optional)");
-            if (notes == null) return;
-    
+            if (notes == null)
+                return;
+
             String dateInput = getInputOrCancel(scanner, "Enter date (DD-MM-YYYY)");
-            if (dateInput == null) return;
-    
+            if (dateInput == null)
+                return;
+
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             LocalDate date;
             try {
@@ -101,7 +128,7 @@ public class Main {
                 System.out.println("Invalid date format. Please use DD-MM-YYYY.");
                 return;
             }
-    
+
             moodService.addMood(new Mood(date, mood, notes));
             System.out.println("Mood added successfully!");
             viewMoods();
@@ -109,8 +136,6 @@ public class Main {
             System.out.println("An unexpected error occurred: " + e.getMessage());
         }
     }
-    
-    
 
     private static void viewMoods() {
         for (Mood mood : moodService.viewMoods()) {
@@ -120,10 +145,11 @@ public class Main {
 
     private static void editMood(Scanner scanner) {
         viewMoods();
-    
+
         String idInput = getInputOrCancel(scanner, "Enter Mood ID to edit");
-        if (idInput == null) return;
-    
+        if (idInput == null)
+            return;
+
         int id;
         try {
             id = Integer.parseInt(idInput);
@@ -131,20 +157,21 @@ public class Main {
             System.out.println("Invalid ID. Returning to main menu.");
             return;
         }
-    
+
         Mood currentMood = moodService.searchMoodById(id);
         if (currentMood == null) {
             System.out.println("Mood not found. Returning to main menu.");
             return;
         }
-    
+
         System.out.println("What would you like to edit?");
         System.out.println("1 - Mood");
         System.out.println("2 - Description");
         System.out.println("3 - Date");
         String choiceInput = getInputOrCancel(scanner, "Enter your choice");
-        if (choiceInput == null) return;
-    
+        if (choiceInput == null)
+            return;
+
         int choice;
         try {
             choice = Integer.parseInt(choiceInput);
@@ -152,11 +179,11 @@ public class Main {
             System.out.println("Invalid choice. Returning to main menu.");
             return;
         }
-    
+
         String updatedMood = currentMood.getMood();
         String updatedNotes = currentMood.getNotes();
         LocalDate updatedDate = currentMood.getDate();
-    
+
         switch (choice) {
             case 1 -> {
                 System.out.println("Choose a new mood:");
@@ -166,8 +193,9 @@ public class Main {
                 System.out.println("4 - Fear");
                 System.out.println("5 - Disgust");
                 String moodInput = getInputOrCancel(scanner, "Enter the number corresponding to your mood");
-                if (moodInput == null) return;
-    
+                if (moodInput == null)
+                    return;
+
                 int moodChoice;
                 try {
                     moodChoice = Integer.parseInt(moodInput);
@@ -175,7 +203,7 @@ public class Main {
                     System.out.println("Invalid input. Returning to main menu.");
                     return;
                 }
-    
+
                 switch (moodChoice) {
                     case 1 -> updatedMood = "Happy";
                     case 2 -> updatedMood = "Sad";
@@ -190,12 +218,14 @@ public class Main {
             }
             case 2 -> {
                 updatedNotes = getInputOrCancel(scanner, "Enter new description");
-                if (updatedNotes == null) return;
+                if (updatedNotes == null)
+                    return;
             }
             case 3 -> {
                 String dateInput = getInputOrCancel(scanner, "Enter new date (DD-MM-YYYY)");
-                if (dateInput == null) return;
-    
+                if (dateInput == null)
+                    return;
+
                 try {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
                     updatedDate = LocalDate.parse(dateInput, formatter);
@@ -209,7 +239,7 @@ public class Main {
                 return;
             }
         }
-    
+
         if (moodService.editMoodById(id, updatedMood, updatedNotes, updatedDate)) {
             System.out.println("Mood updated successfully!");
             viewMoods();
@@ -217,14 +247,12 @@ public class Main {
             System.out.println("Failed to update mood.");
         }
     }
-    
-    
-    
 
     private static void deleteMood(Scanner scanner) {
         String idInput = getInputOrCancel(scanner, "Enter Mood ID to delete");
-        if (idInput == null) return;
-    
+        if (idInput == null)
+            return;
+
         int id;
         try {
             id = Integer.parseInt(idInput);
@@ -232,7 +260,7 @@ public class Main {
             System.out.println("Invalid ID. Returning to main menu.");
             return;
         }
-    
+
         if (moodService.deleteMoodById(id)) {
             System.out.println("Mood deleted!");
             viewMoods();
@@ -240,17 +268,19 @@ public class Main {
             System.out.println("Mood not found. Returning to main menu.");
         }
     }
-    
 
     private static void searchMood(Scanner scanner) {
         String dateInput = getInputOrCancel(scanner, "Enter date (DD-MM-YYYY) to search");
-        if (dateInput == null) return;
-    
+        if (dateInput == null)
+            return;
+
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
             LocalDate date = LocalDate.parse(dateInput, formatter);
-            Mood mood = moodService.searchMoodByDate(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); // Pass database-compatible format
-    
+            Mood mood = moodService.searchMoodByDate(date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))); // Pass
+                                                                                                              // database-compatible
+                                                                                                              // format
+
             if (mood != null) {
                 System.out.println(mood);
             } else {
@@ -260,7 +290,6 @@ public class Main {
             System.out.println("Invalid date format. Please use DD-MM-YYYY.");
         }
     }
-    
 
     private static void weeklySummary() {
         System.out.println(moodService.weeklySummary());
@@ -275,5 +304,5 @@ public class Main {
         }
         return input;
     }
-    
+
 }

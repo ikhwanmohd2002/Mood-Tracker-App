@@ -4,22 +4,27 @@ plugins {
 
 repositories {
     mavenCentral()
+    flatDir {
+        dirs 'libs' // Directory containing the four JAR files
+    }
 }
 
 dependencies {
-    implementation 'org.osgi:osgi.core:6.0.0'
-    implementation 'org.xerial:sqlite-jdbc:3.36.0.3'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'org.osgi:org.osgi.core:6.0.0'
+    implementation 'org.xerial:sqlite-jdbc:3.41.2.1' 
 }
 
 jar {
     manifest {
         attributes(
-            'Bundle-Name': 'TaskManagementApp',
-            'Bundle-SymbolicName': 'com.taskapp',
+            'Manifest-Version': '1.0',
+            'Bundle-ManifestVersion': '2',
+            'Bundle-Name': 'MoodTracker Main',
+            'Bundle-SymbolicName': 'com.moodtracker.main',
             'Bundle-Version': '1.0.0',
-            'Bundle-Activator': 'com.taskapp.activator.TaskManagementActivator',
-            'Import-Package': 'org.osgi.framework, java.sql, org.sqlite',
-            'Main-Class': 'com.taskapp.Main' 
+            'Import-Package': 'com.moodtracker.models, com.moodtracker.services, com.moodtracker.implementations, com.moodtracker.database, org.osgi.framework, java.sql, org.sqlite',
+            'Bundle-Activator': 'com.moodtracker.Main'
         )
     }
 }

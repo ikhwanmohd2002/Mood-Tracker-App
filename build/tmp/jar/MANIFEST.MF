@@ -1,8 +1,10 @@
 Manifest-Version: 1.0
-Bundle-Name: TaskManagementApp
-Bundle-SymbolicName: com.taskapp
+Bundle-ManifestVersion: 2
+Bundle-Name: MoodTracker Main
+Bundle-SymbolicName: com.moodtracker.main
 Bundle-Version: 1.0.0
-Bundle-Activator: com.taskapp.activator.TaskManagementActivator
-Import-Package: org.osgi.framework, java.sql, org.sqlite
-Main-Class: com.taskapp.Main
+Import-Package: com.moodtracker.models, com.moodtracker.services, com.mo
+ odtracker.implementations, com.moodtracker.database, org.osgi.framework
+ , java.sql, org.sqlite
+Bundle-Activator: com.moodtracker.Main
 
