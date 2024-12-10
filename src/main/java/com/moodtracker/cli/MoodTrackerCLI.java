@@ -6,124 +6,193 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.Scanner;
+import java.net.ConnectException;
 import org.springframework.stereotype.Component;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 @Component
 public class MoodTrackerCLI implements CommandLineRunner {
-    private static final String BASE_URL = "http://localhost:8080";
+    private static final String BASE_URL = "http://localhost:8020";
     private static final HttpClient client = HttpClient.newHttpClient();
-    private static final Scanner scanner = new Scanner(System.in);
+    private final Scanner scanner;
     private final ConfigurableApplicationContext context;
 
     public MoodTrackerCLI(ConfigurableApplicationContext context) {
         this.context = context;
+        this.scanner = new Scanner(System.in);
+        System.out.println("DEBUG: Scanner initialized");
     }
 
     @Override
     public void run(String... args) {
-        while (true) {
+        System.out.println("DEBUG: Starting CLI application");
+        boolean running = true;
+        
+        while (running) {
             try {
-                // Get and display the menu
-                String menu = getMenu();
-                System.out.println(menu);
-
-                String choice = scanner.nextLine().trim();
+                displayMenu();
+                System.out.print("Enter your choice (1-7 or Q to quit): ");
                 
-                if (choice.equalsIgnoreCase("7") || choice.equalsIgnoreCase("Q")) {
-                    System.out.println("Goodbye!");
-                    scanner.close();
-                    context.close();
-                    break;
+                String choice = scanner.nextLine().trim();
+                System.out.println("DEBUG: User choice received: '" + choice + "'");
+                
+                if (choice.equalsIgnoreCase("Q") || choice.equals("7")) {
+                    System.out.println("DEBUG: Exit command received");
+                    running = false;
+                    continue;
                 }
 
-                handleMenuChoice(choice);
+                if (!choice.isEmpty()) {
+                    System.out.println("DEBUG: Processing menu choice: " + choice);
+                    handleMenuChoice(choice);
+                    
+                    System.out.println("\nPress Enter to continue or Q to quit...");
+                    String continueChoice = scanner.nextLine().trim();
+                    System.out.println("DEBUG: Continue choice received: '" + continueChoice + "'");
+                    
+                    if (continueChoice.equalsIgnoreCase("Q")) {
+                        System.out.println("DEBUG: Quit command received after menu action");
+                        running = false;
+                    }
+                }
+                
             } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
+                System.out.println("DEBUG: Exception in main loop: " + e.getClass().getName());
+                System.out.println("DEBUG: Exception message: " + e.getMessage());
+                e.printStackTrace();
+                
+                handleError(e);
+                System.out.println("\nPress Enter to continue or Q to quit...");
+                String input = scanner.nextLine().trim();
+                System.out.println("DEBUG: Error recovery input received: '" + input + "'");
+                
+                if (input.equalsIgnoreCase("Q")) {
+                    System.out.println("DEBUG: Quit command received after error");
+                    running = false;
+                }
             }
+        }
+        
+        cleanup();
+    }
+
+    private void displayMenu() {
+        System.out.println("\n=== Mood Tracker Menu ===");
+        System.out.println("1. Add Mood");
+        System.out.println("2. View Moods");
+        System.out.println("3. Edit Mood");
+        System.out.println("4. Delete Mood");
+        System.out.println("5. Search Mood by Date");
+        System.out.println("6. Weekly Summary");
+        System.out.println("7. Exit");
+    }
+
+    private void handleError(Exception e) {
+        System.out.println("DEBUG: Handling error: " + e.getClass().getName());
+        if (e.getCause() instanceof ConnectException) {
+            System.out.println("Error: Cannot connect to the server at " + BASE_URL);
+            System.out.println("Please ensure the server is running and try again.");
+        } else {
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
-    private String getMenu() throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/"))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return response.body();
+    private void cleanup() {
+        System.out.println("DEBUG: Starting cleanup");
+        System.out.println("Goodbye!");
+        try {
+            System.out.println("DEBUG: Closing scanner");
+            scanner.close();
+            System.out.println("DEBUG: Closing Spring context");
+            context.close();
+        } catch (Exception e) {
+            System.out.println("DEBUG: Error during cleanup: " + e.getMessage());
+        }
+        System.out.println("DEBUG: Cleanup completed");
     }
 
     private void handleMenuChoice(String choice) throws Exception {
+        System.out.println("DEBUG: Handling menu choice: " + choice);
         switch (choice) {
-            case "1":
-                addMood();
-                break;
-            case "2":
-                viewMoods();
-                break;
-            case "3":
-                editMood();
-                break;
-            case "4":
-                deleteMood();
-                break;
-            case "5":
-                searchMoodByDate();
-                break;
-            case "6":
-                getWeeklySummary();
-                break;
-            default:
-                System.out.println("Invalid option. Please try again.");
+            case "1" -> addMood();
+            case "2" -> viewMoods();
+            case "3" -> editMood();
+            case "4" -> deleteMood();
+            // case "5" -> searchMoodByDate();
+            // case "6" -> getWeeklySummary();
+            default -> System.out.println("Invalid option. Please try again.");
         }
     }
 
     private void addMood() throws Exception {
-        System.out.println("\nEnter your mood (1-5):");
-        String moodChoice = scanner.nextLine().trim();
-        
-        if (moodChoice.equalsIgnoreCase("Q")) {
-            return;
-        }
+        System.out.println("DEBUG: Starting addMood()");
+        while (true) {
+            System.out.println("\nEnter your mood (1-5):");
+            System.out.println("1. HAPPY");
+            System.out.println("2. SAD");
+            System.out.println("3. ANGRY");
+            System.out.println("4. FEAR");
+            System.out.println("5. DISGUST");
+            System.out.println("(Q to cancel)");
+            
+            String moodChoice = scanner.nextLine().trim();
+            System.out.println("DEBUG: Mood choice received: '" + moodChoice + "'");
+            
+            if (moodChoice.equalsIgnoreCase("Q")) {
+                System.out.println("DEBUG: Cancelling mood addition");
+                return;
+            }
 
-        String moodType = switch (moodChoice) {
-            case "1" -> "HAPPY";
-            case "2" -> "SAD";
-            case "3" -> "ANGRY";
-            case "4" -> "FEAR";
-            case "5" -> "DISGUST";
-            default -> throw new IllegalArgumentException("Invalid mood choice");
-        };
+            if (!moodChoice.matches("[1-5]")) {
+                System.out.println("Invalid mood. Please enter a number between 1 and 5.");
+                continue;
+            }
 
-        System.out.println("Enter a note (optional, press Enter to skip):");
-        String note = scanner.nextLine().trim();
+            String moodValue = switch (moodChoice) {
+                case "1" -> "HAPPY";
+                case "2" -> "SAD";
+                case "3" -> "ANGRY";
+                case "4" -> "FEAR";
+                case "5" -> "DISGUST";
+                default -> throw new IllegalArgumentException("Invalid mood choice");
+            };
 
-        String json = String.format("""
-            {
-                "type": "%s",
-                "date": "%s",
-                "note": "%s"
-            }""", moodType, LocalDate.now(), note);
+            System.out.println("Enter a note (optional, press Enter to skip):");
+            String note = scanner.nextLine().trim();
+            System.out.println("DEBUG: Note received: '" + note + "'");
 
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/api/moods"))
-            .header("Content-Type", "application/json")
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build();
+            String json = String.format("""
+                {
+                    "mood": "%s",
+                    "date": "%s",
+                    "notes": "%s"
+                }""", moodValue, LocalDate.now(), note);
 
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        
-        if (response.statusCode() == 201) {
-            System.out.println("Mood added successfully!");
-        } else {
-            System.out.println("Error adding mood: " + response.body());
+            System.out.println("DEBUG: Sending JSON payload: " + json);
+            
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + "/api/moods"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println("DEBUG: Response status: " + response.statusCode());
+            System.out.println("DEBUG: Response body: " + response.body());
+            
+            if (response.statusCode() == 201) {
+                System.out.println("Mood added successfully!");
+                break;
+            } else {
+                System.out.println("Error adding mood: " + response.body());
+                break;
+            }
         }
     }
 
     private void viewMoods() throws Exception {
+        System.out.println("DEBUG: Starting viewMoods()");
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/api/moods"))
             .GET()
@@ -134,17 +203,31 @@ public class MoodTrackerCLI implements CommandLineRunner {
     }
 
     private void editMood() throws Exception {
-        System.out.println("Enter mood ID to edit:");
+        System.out.println("DEBUG: Starting editMood()");
+        System.out.println("Enter mood ID to edit (Q to cancel):");
         String id = scanner.nextLine().trim();
+        System.out.println("DEBUG: Mood ID received: " + id);
         
         if (id.equalsIgnoreCase("Q")) {
+            System.out.println("DEBUG: Cancelling mood edit");
             return;
         }
 
         System.out.println("\nEnter new mood (1-5):");
+        System.out.println("1. HAPPY");
+        System.out.println("2. SAD");
+        System.out.println("3. ANGRY");
+        System.out.println("4. FEAR");
+        System.out.println("5. DISGUST");
         String moodChoice = scanner.nextLine().trim();
+        System.out.println("DEBUG: New mood choice received: " + moodChoice);
         
-        String moodType = switch (moodChoice) {
+        if (!moodChoice.matches("[1-5]")) {
+            System.out.println("Invalid mood choice. Operation cancelled.");
+            return;
+        }
+
+        String moodValue = switch (moodChoice) {
             case "1" -> "HAPPY";
             case "2" -> "SAD";
             case "3" -> "ANGRY";
@@ -155,14 +238,17 @@ public class MoodTrackerCLI implements CommandLineRunner {
 
         System.out.println("Enter a new note (optional, press Enter to skip):");
         String note = scanner.nextLine().trim();
+        System.out.println("DEBUG: New note received: " + note);
 
         String json = String.format("""
             {
-                "type": "%s",
+                "mood": "%s",
                 "date": "%s",
-                "note": "%s"
-            }""", moodType, LocalDate.now(), note);
+                "notes": "%s"
+            }""", moodValue, LocalDate.now(), note);
 
+        System.out.println("DEBUG: Sending JSON payload: " + json);
+        
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/api/moods/" + id))
             .header("Content-Type", "application/json")
@@ -170,6 +256,8 @@ public class MoodTrackerCLI implements CommandLineRunner {
             .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("DEBUG: Response status: " + response.statusCode());
+        System.out.println("DEBUG: Response body: " + response.body());
         
         if (response.statusCode() == 200) {
             System.out.println("Mood updated successfully!");
@@ -179,19 +267,24 @@ public class MoodTrackerCLI implements CommandLineRunner {
     }
 
     private void deleteMood() throws Exception {
-        System.out.println("Enter mood ID to delete:");
+        System.out.println("DEBUG: Starting deleteMood()");
+        System.out.println("Enter mood ID to delete (Q to cancel):");
         String id = scanner.nextLine().trim();
+        System.out.println("DEBUG: Mood ID received: " + id);
         
         if (id.equalsIgnoreCase("Q")) {
+            System.out.println("DEBUG: Cancelling mood deletion");
             return;
         }
 
+        System.out.println("DEBUG: Sending request to delete mood");
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create(BASE_URL + "/api/moods/" + id))
             .DELETE()
             .build();
 
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println("DEBUG: Response status: " + response.statusCode());
         
         if (response.statusCode() == 204) {
             System.out.println("Mood deleted successfully!");
@@ -200,30 +293,5 @@ public class MoodTrackerCLI implements CommandLineRunner {
         }
     }
 
-    private void searchMoodByDate() throws Exception {
-        System.out.println("Enter date (YYYY-MM-DD):");
-        String date = scanner.nextLine().trim();
-        
-        if (date.equalsIgnoreCase("Q")) {
-            return;
-        }
-
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/api/moods/date/" + date))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("\nMood for " + date + ":\n" + response.body());
-    }
-
-    private void getWeeklySummary() throws Exception {
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + "/api/moods/weekly/summary"))
-            .GET()
-            .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        System.out.println("\nWeekly Summary:\n" + response.body());
-    }
+   
 }

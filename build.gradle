@@ -25,3 +25,24 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+// Task to run the Scanner test
+task testScanner(type: JavaExec) {
+    description = 'Runs the scanner test'
+    group = 'application'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.moodtracker.cli.ScannerTest'
+    standardInput = System.in
+    standardOutput = System.out
+}
+
+// Task to run the CLI
+task runCli(type: JavaExec) {
+    description = 'Runs the application in CLI mode'
+    group = 'application'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.moodtracker.MoodTrackerApplication'
+    args = ['--cli']
+    standardInput = System.in
+    standardOutput = System.out
+}

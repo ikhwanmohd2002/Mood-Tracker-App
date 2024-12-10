@@ -78,14 +78,15 @@ GET /api/moods/weekly/summary
 6. Access H2 Console at `http://localhost:8080/h2-console` (development only)
 
 ## Running the CLI
-1. First, start the Spring Boot application (REST API server)
+1. Start the Spring Boot application (REST API server)
 ```
 ./gradlew bootRun
 ```
-2. Then, in a separate terminal, run the CLI client:
+2. Option 2:
 ```
-./gradlew runCli
+java -jar build/libs/Mood-Tracker-App-1.0.0.jar --cli
 ```
+
 
 ## Database Configuration
 
