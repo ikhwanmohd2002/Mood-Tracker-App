@@ -14,3 +14,5 @@ public interface MoodTrackerService {
     Mood searchMoodByDate(String date);
     String weeklySummary();
 }
+
+

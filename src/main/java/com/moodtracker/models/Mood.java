@@ -1,8 +1,8 @@
 package com.moodtracker.models;
-import java.text.SimpleDateFormat;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
+
 public class Mood {
     private int id; // New ID field
     private LocalDate date;
@@ -55,10 +55,11 @@ public class Mood {
         this.notes = notes;
     }
 
-   @Override
+    @Override
     public String toString() {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-    return "ID: " + id + ", Date: " + date.format(formatter) + ", Mood: " + mood + ", Notes: " + (notes == null || notes.isEmpty() ? "None" : notes);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        return "ID: " + id + ", Date: " + date.format(formatter) + ", Mood: " + mood + ", Notes: "
+                + (notes == null || notes.isEmpty() ? "None" : notes);
     }
 
 }
