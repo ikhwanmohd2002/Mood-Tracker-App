@@ -1,65 +1,42 @@
 package com.moodtracker.models;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Table(name = "moods")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Mood {
-    private int id; // New ID field
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotNull(message = "Date is required")
+    @PastOrPresent(message = "Date cannot be in the future")
     private LocalDate date;
+
+    @NotNull(message = "Mood is required")
     private String mood;
+
     private String notes;
 
-    // Constructor with ID
-    public Mood(int id, LocalDate date, String mood, String notes) {
-        this.id = id;
-        this.date = date;
-        this.mood = mood;
-        this.notes = notes;
-    }
-
-    // Constructor without ID (for adding moods)
+    // Constructor for creating new mood entries (without ID)
     public Mood(LocalDate date, String mood, String notes) {
-        this(0, date, mood, notes); // ID defaults to 0 (ignored by DB during insertion)
-    }
-
-    // Getters and Setters
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
         this.date = date;
-    }
-
-    public String getMood() {
-        return mood;
-    }
-
-    public void setMood(String mood) {
         this.mood = mood;
-    }
-
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
         this.notes = notes;
     }
-
-    @Override
-    public String toString() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-        return "ID: " + id + ", Date: " + date.format(formatter) + ", Mood: " + mood + ", Notes: "
-                + (notes == null || notes.isEmpty() ? "None" : notes);
-    }
-
 }

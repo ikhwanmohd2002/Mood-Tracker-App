@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-MoodTrackerApplication<Mood-Tracker-App>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.moodtracker.MoodTrackerApplication",
+            "projectName": "Mood-Tracker-App",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

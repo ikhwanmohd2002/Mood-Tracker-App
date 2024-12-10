@@ -1,25 +1,27 @@
 plugins {
+    id 'org.springframework.boot' version '3.1.5'
+    id 'io.spring.dependency-management' version '1.1.3'
     id 'java'
 }
+
+group = 'com.moodtracker'
+version = '1.0.0'
+sourceCompatibility = '17'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.osgi:osgi.core:6.0.0'
-    implementation 'org.xerial:sqlite-jdbc:3.36.0.3'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.projectlombok:lombok'
+    implementation 'com.h2database:h2:2.2.224'  // Explicit H2 version
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
-jar {
-    manifest {
-        attributes(
-            'Bundle-Name': 'TaskManagementApp',
-            'Bundle-SymbolicName': 'com.taskapp',
-            'Bundle-Version': '1.0.0',
-            'Bundle-Activator': 'com.taskapp.activator.TaskManagementActivator',
-            'Import-Package': 'org.osgi.framework, java.sql, org.sqlite',
-            'Main-Class': 'com.taskapp.Main' 
-        )
-    }
+test {
+    useJUnitPlatform()
 }
