@@ -7,7 +7,6 @@ import java.util.Scanner;
 
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceReference;
 
 import com.moodtracker.implementations.MoodTrackerServiceImpl;
 import com.moodtracker.models.Mood;
@@ -22,6 +21,12 @@ public class Main implements BundleActivator {
         // ServiceReference<MoodTrackerService> reference =
         // context.getServiceReference(MoodTrackerService.class);
         // MoodTrackerService moodService = context.getService(reference);
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        com.moodtracker.database.Database.initialize();
 
         if (moodService != null) {
             System.out.println("MoodTrackerService is available. Testing it...");

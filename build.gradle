@@ -23,7 +23,7 @@ jar {
             'Bundle-Name': 'MoodTracker Main',
             'Bundle-SymbolicName': 'com.moodtracker.main',
             'Bundle-Version': '1.0.0',
-            'Import-Package': 'com.moodtracker.models, com.moodtracker.services, com.moodtracker.implementations, com.moodtracker.database, org.osgi.framework, java.sql, org.sqlite',
+            'Import-Package': 'org.osgi.framework, com.moodtracker.models, com.moodtracker.services, com.moodtracker.implementations, com.moodtracker.database, java.sql, org.sqlite',
             'Bundle-Activator': 'com.moodtracker.Main'
         )
     }
