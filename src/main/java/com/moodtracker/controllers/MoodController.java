@@ -7,7 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.moodtracker.models.Mood;
 import com.moodtracker.services.MoodTrackerService;
@@ -40,10 +47,10 @@ public class MoodController {
         menu.append("4 - Fear\n");
         menu.append("5 - Disgust\n");
         menu.append("Enter the number corresponding to your mood (Type 'Q' to cancel): \n");
-        
+
         return ResponseEntity.ok()
-            .header("Content-Type", "text/plain")
-            .body(menu.toString());
+                .header("Content-Type", "text/plain")
+                .body(menu.toString());
     }
 
     @PostMapping("/api/moods")
@@ -62,7 +69,7 @@ public class MoodController {
     }
 
     @GetMapping("/api/moods/date/{date}")
-    public ResponseEntity<Mood> getMoodByDate(
+    public ResponseEntity<List<Mood>> getMoodByDate(
             @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
         return ResponseEntity.ok(moodService.getMoodByDate(date));
     }

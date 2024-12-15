@@ -38,20 +38,22 @@ public class MoodTrackerServiceImpl implements MoodTrackerService {
                 .orElseThrow(() -> new EntityNotFoundException("Mood not found with id: " + id));
     }
 
-    @Override
-    public Mood getMoodByDate(LocalDate date) {
-        return moodRepository.findByDate(date)
-                .orElseThrow(() -> new EntityNotFoundException("Mood not found for date: " + date));
+    public List<Mood> getMoodByDate(LocalDate date) {
+        List<Mood> moods = moodRepository.findByDate(date);
+        if (moods.isEmpty()) {
+            throw new EntityNotFoundException("No moods found for the given date." + date);
+        }
+        return moods;
     }
 
     @Override
     public Mood updateMood(Long id, Mood updatedMood) {
         Mood existingMood = getMoodById(id);
-        
+
         existingMood.setDate(updatedMood.getDate());
         existingMood.setMood(updatedMood.getMood());
         existingMood.setNotes(updatedMood.getNotes());
-        
+
         return moodRepository.save(existingMood);
     }
 
@@ -73,15 +75,15 @@ public class MoodTrackerServiceImpl implements MoodTrackerService {
     @Override
     public String getWeeklySummary() {
         List<Mood> weeklyMoods = getWeeklyMoods();
-        
+
         Map<String, Long> moodCounts = weeklyMoods.stream()
                 .collect(Collectors.groupingBy(Mood::getMood, Collectors.counting()));
-        
+
         StringBuilder summary = new StringBuilder("Weekly Mood Summary:\n");
-        moodCounts.forEach((mood, count) -> 
-            summary.append(mood).append(": ").append(count).append("\n")
+        moodCounts.forEach((mood, count)
+                -> summary.append(mood).append(": ").append(count).append("\n")
         );
-        
+
         return summary.toString();
     }
 }
